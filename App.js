@@ -1,15 +1,29 @@
 import { StyleSheet, ImageBackground } from "react-native";
-import StartGameScreen from "./screens/StartGameScreen";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFonts } from "expo-font";
+// expo-app-loading is deprecated in favor of expo-splash-screen: use SplashScreen.preventAutoHideAsync() and SplashScreen.hideAsync() instead. https://docs.expo.dev/versions/latest/sdk/splash-screen/
+import AppLoading from "expo-app-loading";
+
+import StartGameScreen from "./screens/StartGameScreen";
 import GameScreen from "./screens/GameScreen";
 import GameOverScreen from "./screens/GameOverScreen";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "./constants/colors";
 
 export default function App() {
   const [userNumber, setUserNumber] = useState();
+  const [roundCount, setRoundCount] = useState(0);
   const [gameIsOver, setGameIsOver] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    "open-sans": require("./assets/fonts/OpenSans-Regular.ttf"),
+    "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf"),
+  });
+
+  if (!fontsLoaded) {
+    return <AppLoading />;
+  }
 
   function pickNumberHandler(enteredNumber) {
     var enteredNumberToInt = parseInt(enteredNumber);
@@ -20,10 +34,12 @@ export default function App() {
   function handleRestartGame() {
     setUserNumber(undefined);
     setGameIsOver(false);
+    setRoundCount(0);
   }
 
-  function gameOverHandler() {
+  function gameOverHandler(numberOfRounds) {
     setGameIsOver(true);
+    setRoundCount(numberOfRounds);
   }
 
   var gameScreen =
@@ -34,7 +50,13 @@ export default function App() {
     );
 
   if (gameIsOver) {
-    gameScreen = <GameOverScreen onRestartGame={handleRestartGame} />;
+    gameScreen = (
+      <GameOverScreen
+        roundCount={roundCount}
+        userNumber={userNumber}
+        onRestartGame={handleRestartGame}
+      />
+    );
   }
 
   return (
